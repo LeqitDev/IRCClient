@@ -16,10 +16,10 @@ public class IRCClient {
     public static String msg;
     private static List<String> channels = new ArrayList<>();
     private static boolean newChannel = true;
+    private static boolean setMembers = true;
 
     public static void main(String[] args){
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-        boolean setMembers = true;
         Client client = null;
 
         win = new JFrame.Window();
@@ -36,7 +36,7 @@ public class IRCClient {
 
         if (username != null && cur_channel != null)
         {
-            client = org.kitteh.irc.client.library.Client.builder().nick(username).server().host("irc.euirc.net").then().buildAndConnect();
+            client = org.kitteh.irc.client.library.Client.builder().nick(username).server().host("irc.de.euirc.net").then().buildAndConnect();
 
             client.getEventManager().registerEventListener(new Listener());
             client.addChannel(cur_channel);
@@ -52,13 +52,17 @@ public class IRCClient {
                 newChannel = false;
             }
 
-            if (client.getChannel(cur_channel).isPresent() && client.getChannel(cur_channel).get().hasCompleteUserData() && setMembers){
-                win.setMembers(client.getChannel(cur_channel).get().getUsers());
-                setMembers = false;
+            if (client.getChannel(cur_channel).isPresent()){
+                if (client.getChannel(cur_channel).get().hasCompleteUserData() && setMembers) {
+                    IRCClient.win.addMSG("Joined: " + cur_channel, cur_channel);
+                    win.setMembers(client.getChannel(cur_channel).get().getUsers(), cur_channel);
+                    setMembers = false;
+                }
             }
+
             if (msg != null)
             {
-                win.addMSG("[" + simpleDateFormat.format(new Date()) + "] <" + username + ">: " + msg);
+                win.addMSG("[" + simpleDateFormat.format(new Date()) + "] <" + username + ">: " + msg, cur_channel);
                 client.sendMessage(cur_channel, msg);
                 msg = null;
             }
@@ -69,6 +73,8 @@ public class IRCClient {
         IRCClient.cur_channel = channel;
         IRCClient.channels.add(channel);
         IRCClient.newChannel = true;
+        IRCClient.setMembers = true;
+        IRCClient.win.addChannel(channel);
     }
 
     public static void addChannel(String channel) {

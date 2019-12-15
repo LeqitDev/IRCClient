@@ -5,7 +5,9 @@ import net.engio.mbassy.listener.Filter;
 import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.event.abstractbase.ClientReceiveServerMessageEventBase;
 import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent;
+import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelNamesUpdatedEvent;
+import org.kitteh.irc.client.library.event.helper.MessageEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,7 +15,7 @@ import java.util.List;
 
 public class Listener {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-    @Handler
+    /*@Handler
     public void onMessageReceive(ClientReceiveServerMessageEventBase event)
     {
         List params = event.getParameters();
@@ -30,6 +32,17 @@ public class Listener {
             }
         }
         IRCClient.win.addMSG("[" + simpleDateFormat.format(new Date()) + "] " + author + ": " + msg);
+    }*/
+
+    @Handler
+    public void onChannelMessage(ChannelMessageEvent e)
+    {
+        String msg = e.getMessage();
+        String author = e.getActor().getNick();
+        if (e.getChannel().getName().equalsIgnoreCase(IRCClient.cur_channel))
+        {
+            IRCClient.win.addMSG("[" + simpleDateFormat.format(new Date()) + "] <" + author + ">: " + msg, IRCClient.cur_channel);
+        }
     }
 
     @Handler
@@ -39,8 +52,8 @@ public class Listener {
             System.out.println("Joined: " + event.getChannel().getName());
         } else {
             System.out.println(event.getUser().getNick() + " joined " + event.getChannel().getName());
-            IRCClient.win.addMSG(event.getUser().getNick() + " joined " + event.getChannel().getName());
-            IRCClient.win.addMember(event.getUser());
+            IRCClient.win.addMSG(event.getUser().getNick() + " joined " + event.getChannel().getName(), IRCClient.cur_channel);
+            IRCClient.win.addMember(event.getUser(), IRCClient.cur_channel);
         }
     }
 }
